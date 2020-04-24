@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useHistory } from "react-router-dom";
-import axios from "axios";
+import { useHistory } from "react-router-dom";
+// import axios from "axios";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 
 const initialColor = {
@@ -14,7 +14,7 @@ const ColorList = ({ colors, updateColors }) => {
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
   const { push } = useHistory();
-  const { id } = useParams();
+  // const { id } = useParams();
   console.log({ colorToEdit });
 
   const editColor = (color) => {
@@ -27,9 +27,16 @@ const ColorList = ({ colors, updateColors }) => {
     axiosWithAuth()
       .put(`api/colors/${colorToEdit.id}`, colorToEdit)
       .then((res) => {
-        console.log("SaveEdit res", res);
-        setColorToEdit(res.data);
-        push(`/colors/${colorToEdit.id}`);
+        console.log("res.data", res.data);
+        const newColorList = colors.map((color) => {
+          console.log("res.data.id", res.data.id);
+          if (color.id === res.data.id) {
+            return [res.data];
+          }
+          // console.log({ newColorList });
+        });
+        updateColors(...newColorList);
+        push(`/colors/`);
         // useEffect(() => {}, [colorToEdit]);
       })
       .catch((err) => {
@@ -37,14 +44,34 @@ const ColorList = ({ colors, updateColors }) => {
       });
   };
 
+  const addColor = (e) => {
+    // e.preventDefault()
+
+    axiosWithAuth()
+      .post("/api/colors", colorToEdit)
+      .then((res) => {
+        console.log("props", res.data);
+        updateColors(res.data);
+        colors.push("/colors", res.data);
+      })
+      .catch((err) => {
+        console.log("Error in AddFriend", err);
+      });
+  };
+
   const deleteColor = (color) => {
+    // console.log("color", color);
     axiosWithAuth()
       .delete(`/api/colors/${color.id}`, colorToEdit)
       .then((res) => {
-        console.log("response from .delete", res);
-        const newList = colors.filter((item) => `${item.id}` !== res.data);
-        setColorToEdit(newList);
-        push(`/colors/${colorToEdit.id}`);
+        // console.log({ colors });
+        // console.log("res.data", res.data);
+        const newList = colors.filter((item) => {
+          return item.id !== res.data;
+        });
+        updateColors(newList);
+        // console.log("response from delete", colorToEdit);
+        push(`/colors`);
       })
       .catch((err) => console.log(err, "sorry, could not delete this color"));
   };
@@ -52,6 +79,7 @@ const ColorList = ({ colors, updateColors }) => {
   return (
     <div className="colors-wrap">
       <p>colors</p>
+      <button onClick={addColor}>Add A Blank Color</button>
       <ul>
         {colors.map((color) => (
           <li key={color.color} onClick={() => editColor(color)}>
