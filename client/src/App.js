@@ -23,9 +23,8 @@ function App() {
           </nav>
         </header>
         <Switch>
-          <PrivateRoute exact path="/colors" component={BubblePage} />
+          <PrivateRoute path="/colors" component={BubblePage} />
           <Route exact path="/" component={Login} />
-          <Route component={Login} />
         </Switch>
       </div>
     </Router>

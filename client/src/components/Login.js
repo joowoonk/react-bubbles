@@ -1,55 +1,66 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 
-class Login extends React.Component {
-  // make a post request to retrieve a token from the api
-  // when you have handled the token, navigate to the BubblePage route
+const intialState = {
+  username: "",
+  password: "",
+  isFetching: false,
+};
 
-  state = {
-    creds: {
-      username: "",
-      password: "",
-    },
+const Login = (props) => {
+  const [login, setLogin] = useState(intialState);
+
+  const handleChange = (e) => {
+    setLogin({ ...login, [e.target.name]: e.target.value });
   };
 
-  handleChange = (e) => {
-    this.setState({
-      creds: {
-        ...this.state.creds,
-        [e.target.name]: e.target.value,
-      },
-    });
-  };
-
-  login = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setLogin({ ...login, isFetching: true });
     axiosWithAuth()
-      .post("api/login", this.state.creds)
+      .post("/api/login", login)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
+        localStorage.setItem("token", res.data.payload);
+        props.history.push("/colors");
+      })
+      .catch((err) => {
+        console.log(err, "sorry, an error has occured while logging you in");
       });
   };
 
-  render() {
-    return (
+  return (
+    <div>
+      <h3>Login</h3>
       <div>
-        <form onSubmit={this.login}>
+        <form onSubmit={handleSubmit}>
           <input
+            label="Username"
             type="text"
             name="username"
-            value={this.state.creds.username}
-            onChange={this.handleChange}
+            placeholder="username"
+            value={login.username}
+            onChange={handleChange}
           />
+          <br />
           <input
+            label="Password"
             type="password"
             name="password"
-            value={this.state.creds.password}
-            onChange={this.handleChange}
+            placeholder="password"
+            value={login.password}
+            onChange={handleChange}
           />
-          <button>Log in</button>
+          <br />
+          <br />
+          <button>Log In</button>
+          {login.isFetching && "Please wait...logging you in"}
         </form>
+        Don't have an account? <Link to="/signup">Sign Up</Link>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
+
 export default Login;
